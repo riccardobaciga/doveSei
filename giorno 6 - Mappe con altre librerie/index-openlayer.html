@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+	<head>
+		<meta name="description" content="Webpage description goes here" />
+		<meta charset="utf-8" />
+		<title>dove Sei - giorno 6</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" href="img/ico.png" />
+		<meta name="author" content="" />
+		<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+
+		<script src="https://cdn.jsdelivr.net/npm/ol@v7.3.0/dist/ol.js"></script>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.3.0/ol.css" />
+
+		<style type="text/css">
+			       body,
+			       html {
+			       height: 100%;
+			       margin: 0;
+			       }
+			       .lookingForSignal,
+			       .noSignalFound,
+			       .signalFound {
+			       height: 100%;
+			       position: relative;
+			       background-position: center;
+			       background-repeat: no-repeat;
+			       background-size: cover;
+			       }
+			       .noSignalFound {
+			       background-image: url("img/noSignalFound.jpg");
+			       }
+			       .lookingForSignal {
+			       background-image: url("img/lookingForSignal.jpg");
+			       }
+			       .signalFound {
+			       background-image: url("img/signalFound.jpg");
+			       }
+
+			       #map {
+                  height:100vh;
+                }
+		</style>
+	</head>
+	<body class="lookingForSignal">
+		<div class="w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding" onclick="changeStatus()" id="statusBar"></div>
+		<div class="w3-hide w3-white w3-block" id="map"></div>
+		<script>
+			var myApp = {};
+			myApp.status = "lookingForSignal";
+
+			myApp.statusBar = $('#statusBar');
+			myApp.statusBar.color = [];
+			myApp.statusBar.label = [];
+			myApp.loadingIcon = '<img src="./img/loading.gif" height="20px" width="20px" >';
+			myApp.statusBar.label["lookingForSignal"] = myApp.loadingIcon + " Cerco il segnale " + myApp.loadingIcon;
+			myApp.statusBar.color["lookingForSignal"] = "w3-indigo";
+
+			myApp.statusBar.color["noSignalFound"] = "w3-deep-purple";
+			myApp.statusBar.label["noSignalFound"] = "Non &egrave; collegato nessuno";
+
+			myApp.statusBar.color["signalFound"] = "w3-blue-grey";
+			myApp.statusBar.label["signalFound"] = myApp.loadingIcon + ' Pippo sta correndo';
+
+			myApp.map = $('#map');
+			myApp.map.home = [10.047747, 45.660892];
+			myApp.map.initialZoom = 15;
+
+
+			function changeStatus() {
+			    switch (myApp.status) {
+			        case "lookingForSignal":
+			           noSignalFound();
+			            break;
+			        case "noSignalFound":
+			            signalFound();
+			            break;
+			        case "signalFound":
+			           noSignalFound();
+			            break;
+			    }
+			}
+
+			function barStatusChange(){
+			   document.body.className = myApp.status;
+			   myApp.statusBar.html(myApp.statusBar.label[myApp.status]);
+
+			   myApp.statusBar.removeClass(myApp.statusBar.color["lookingForSignal"]);
+			    myApp.statusBar.removeClass(myApp.statusBar.color["noSignalFound"]);
+			    myApp.statusBar.removeClass(myApp.statusBar.color["signalFound"]);
+
+			   myApp.statusBar.addClass(myApp.statusBar.color[myApp.status]);
+			}
+
+			function lookingForSignal() {
+			    myApp.status = "lookingForSignal";
+			    barStatusChange()
+			}
+
+
+			function signalFound() {
+			    myApp.status = "signalFound";
+
+			    myApp.statusBar.removeClass('w3-center');
+			    myApp.statusBar.removeClass('w3-display-middle');
+			    myApp.statusBar.addClass('w3-bottom');
+
+			    myApp.map.removeClass('w3-hide');
+			   // inizialize variable for map
+
+			    myApp.map.layer = [new ol.layer.Tile({source: new ol.source.OSM() })];
+			    myApp.map.currentPosition = ol.proj.fromLonLat(myApp.map.home);
+
+			    myApp.map.currentView = new ol.View({
+											center: myApp.map.currentPosition,
+											zoom: myApp.map.initialZoom
+										});
+
+
+			    myApp.map = new ol.Map({
+			       target: 'map',
+			       layers: myApp.map.layer ,
+			       view: myApp.map.currentView
+			   });
+			    barStatusChange()
+			}
+
+			function noSignalFound() {
+			    myApp.status = "noSignalFound";
+
+			    barStatusChange()
+			}
+
+			lookingForSignal();
+		</script>
+	</body>
+</html>
