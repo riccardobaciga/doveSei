@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta name="description" content="Webpage description goes here" />
+    <meta charset="utf-8" />
+    <title>dove Sei - Versione 1
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/ico.png">
+    <meta name="author" content="" />
+    <script src="https://code.jquery.com/jquery-latest.min.js">
+    </script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+          integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+            integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+            crossorigin="">
+    </script>
+    <link rel="stylesheet" href="include/dovesei.css">
+  </head>
+  <body class="lookingForSignal">
+    <div class="w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding" onclick="changeStatus()" id="statusBar"> 
+    </div>
+    <div class="w3-hide w3-white w3-block" id="map">
+    </div>
+    <script>
+      var myApp = {
+          intervalMillis : 5000,
+          status : "lookingForSignal",
+          inizitialZoom : 15,
+          loadingIcon : '<img src="./img/loading.gif" height="20px" width="20px" >',
+      };
+      
+      myApp.statusBar = {
+          div : $('#statusBar'),
+          label : {
+              lookingForSignal : myApp.loadingIcon + " Cerco il segnale " + myApp.loadingIcon,
+              noSignalFound : "Non &egrave; collegato nessuno",
+              signalFound : myApp.loadingIcon + ' ',
+          },
+          class : {
+              lookingForSignal : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-indigo",
+              noSignalFound : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-deep-purple",
+              signalFound : "w3-bottom w3-block w3-xlarge w3-padding w3-blue-grey",
+          }
+          
+      }
+      
+      myApp.map = $('#map');
+      
+      myApp.me = {
+        trackProperties : {
+          color : "red",
+          weight : 10,
+          opacity : 0.50,
+        }
+        ,
+        track : null,
+      };
+      
+      function changeStatus(data) {
+        console.log(data);
+        if (myApp.status !== "signalFound"){
+          if (data.length > 0){
+            data.forEach(signalFound);
+          }
+          else{
+            noSignaFound();
+          }
+        }
+      }
+      
+      function barStatusChange(){
+        document.body.className = myApp.status;
+        
+        myApp.statusBar.div.removeClass();
+        myApp.statusBar.div.html(myApp.statusBar.label[myApp.status])
+        myApp.statusBar.div.addClass(myApp.statusBar.class[myApp.status]);
+      }
+      
+      function chiamaGet(){
+        if (myApp.status !== "signalFound"){
+            console.log("signal not found");
+          doAjax("get.php",{w:"getTravel"},"changeStatus");
+        }
+        else{
+            console.log("signal found");
+          doAjax("get.php",{w:"getPosition",t: myApp.currentTimestamp},"locateIt");
+        }
+      }
+      
+      function lookingForSignal() {
+        myApp.status = "lookingForSignal";
+        barStatusChange()
+        myApp.interval = setInterval(chiamaGet, myApp.intervalMillis);
+      }
+      
+      function signalFound(user) {
+        myApp.status = "signalFound";
+        barStatusChange();
+        
+        myApp.map.removeClass('w3-hide');
+        
+        $("#map").height($(document).height() - $("#statusBar").height() - 10);
+        getCurrentPosition(user.travel);
+        
+        // inserisco la mappa nel div
+        myApp.map = L.map('map').setView(myApp.currentPosition, myApp.inizitialZoom );
+        myApp.tiles = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+          maxZoom: 20,
+          attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(myApp.map);
+        
+        myApp.me.icon = L.icon({
+          iconUrl: './img/punto_rosso.png',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        }
+                              );
+        myApp.me.position = L.marker(myApp.currentPosition, {
+          icon: myApp.me.icon
+        }).addTo(myApp.map);
+        
+        myApp.me.track = L.polyline([],{
+          color: myApp.me.trackProperties.color,
+          weight : myApp.me.trackProperties.weight,
+          opacity : myApp.me.trackProperties.opacity
+        }).addTo(myApp.map);
+        
+        user.travel.forEach((value) => {
+          myApp.me.track.addLatLng(L.latLng(value.y, value.x));
+        }
+                           );
+        myApp.statusBar.div.html(myApp.loadingIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed)
+        
+      }
+      
+      function noSignaFound() {
+        myApp.status = "noSignalFound";
+        barStatusChange()
+      }
+      
+      function getCurrentPosition(travel){
+        tmp = travel[travel.length-1];
+        myApp.currentPosition = L.latLng(tmp.y, tmp.x);
+        myApp.currentSpeed = tmp.v;
+        myApp.currentTimestamp = tmp.t;
+      }
+      
+      function locateIt(data){
+        data.forEach((user) => {
+              if (user.travel.length > 0){
+                getCurrentPosition(user.travel);
+                
+                user.travel.forEach((point) => {
+                      myApp.me.track.addLatLng(L.latLng(point.y, point.x));
+                    }
+                );
+                
+                myApp.map.setView(myApp.currentPosition);
+                myApp.me.position.setLatLng(myApp.currentPosition);
+                myApp.statusBar.div.html(myApp.loadingIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed);
+              }
+            }
+        );
+      }
+      
+      function doAjax(nomeServizio, param, nomeFunzione){
+        $.ajax({
+          url: nomeServizio,
+          type: 'POST', 
+          dataType: 'html', 
+          data: param
+        })
+        .done(function(data) {
+              try{
+                var risposta = JSON.parse(data);
+                console.log(risposta);
+              }
+              catch(e){
+                console.log (e+data);
+                alert("Errore nella conversione dei dati");
+              }
+              if (risposta.result === "KO"){
+                console.log (risposta.description);
+                alert("Errore nell'esecuzione del servizio");
+              }
+              else{
+                window[nomeFunzione](risposta.data);
+              }
+            }
+         )
+         .fail(function() {
+                console.log ("ERRORE ajax nella chiamata" + this.url + "</p><b>" + this.statusText + "</b>");
+                alert("ERRORE ajax nella chiamata");
+            }
+        );
+      }
+      
+      
+      lookingForSignal();
+      
+    </script>
+  </body>
+</html>

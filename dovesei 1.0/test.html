@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="it">
+   <head>
+        <meta name="description" content="Webpage description goes here" />
+        <meta charset="utf-8" />
+        <title>dove Sei - Pagnina di supporto - Simula Telefono</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/png" href="img/ico.png">
+        <meta name="author" content="" />
+        <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+        integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+        crossorigin=""/>
+        
+        
+        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+        crossorigin=""></script>
+      
+        <link rel="stylesheet" href="include/dovesei.css">
+   </head>
+   
+   <body >
+       
+    <div class="w3-row-padding">
+      <div class="w3-col m3">
+        <select class="w3-select inputAA" name="dataTrasmettere" id="dataTrasmettere"></select>
+    </div>
+      <div class="w3-col m3">
+        <select class="w3-select inputAA" name="userTrasmettere" id="userTrasmettere"></select>
+    </div>
+      <div class="w3-col m3">
+        <select class="w3-select inputAA" name="tempo" id="tempo">
+            <option value="1000" >1 secondo</option>
+            <option value="2000" >2 secondi</option>
+            <option value="5000" selected>5 secondi</option>
+            <option value="100000">10 secondi</option>
+            <option value="30000">30 secondi</option>
+            <option value="60000">1 minuto</option>
+            <option value="120000">2 minuto</option>
+            <option value="300000">5 minuto</option>
+        </select>
+    </div>
+      <div class="w3-col m1">
+        <label class="w3-button w3-green w3-block " id="actionBtn" onCLick="vaiStop()">Vai</label>
+      </div>
+      <div class="w3-col m2">
+        <button class="w3-button w3-orange w3-block inputAAA" onClick="$('#id01').show();">Cancella GPS Oggi</button>
+      </div>
+    </div>   
+    <div class="w3-bar w3-green">
+      <div class="w3-bar-item" id="stato">&nbsp;</div>
+    </div>
+    
+    <iframe src="index.html" title="Home" id="homeFrame" style="width:100%"></iframe>
+ 
+      <div id="id01" class="w3-modal">
+        <div class="w3-modal-content w3-card-1">
+          <header class="w3-container"> 
+            <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+            <h2>Password</h2>
+          </header>
+          <div class="w3-container">
+            <p>scrivi la password per cancellare gli elementi.</p>
+            <p><input class="w3-input w3-border" type="password" placeholder="Enter Password" name="psw" id="psw" required></p>
+          </div>
+          <footer class="w3-container w3-teal">
+            <p><button class="w3-button w3-red" onClick="$('#id01').hide();">Annulla</button><button class="w3-button w3-green w3-right" onclick="cancellaOggi()">Invia</button></p>
+          </footer>
+        </div>
+      </div>
+
+    <script>
+    
+        myApp = {
+            travel : [] ,
+            currentPosition : 0,
+            loadingIcon : '<img src="./img/loading.gif" height="20px" width="20px" > &nbsp; '
+        };
+        
+        function cancellate(data){
+            alert (data);
+            doAjax("/get.php?w=getDates",[],"dateDisponibili");
+            doAjax("/get.php?w=getUsers",[],"usersDisponibili");
+            myApp.currentPosition = 0;
+            $("#homeFrame").attr("src","index.html");
+        }
+        
+        function cancellaOggi(){
+            password = $("#psw").val();
+            url = "do.php?w=cancellaOggi&password="+password;
+            doAjax(url, [], "cancellate");
+            $('#id01').hide()
+        }
+        
+            
+        function setGps(){
+        
+            if (myApp.currentPosition < myApp.travel.length - 1){
+                myApp.currentPosition ++;
+            }
+            tmp = myApp.travel[myApp.currentPosition];
+            var today = new Date();
+            month = '' + (today.getMonth() + 1);
+            if (month < 10){ 
+                month = '0' + month;
+            }
+            day = '' + today.getDate();
+            year = today.getFullYear();
+            d = [year, month, day].join('')
+            tmpUrl = "set.php?k="+myApp.userKey+"&x="+tmp.x+"&y="+tmp.y+"&z="+tmp.z+"&v="+tmp.v+"&t="+Date.now()+"&s="+d;
+            $("#stato").html(myApp.loadingIcon + tmpUrl);
+            doAjax(tmpUrl,[],"dummy");
+        }
+        
+        function dummy(data){
+            console.log(data);
+        }
+        
+        function inviaSegnaliGps(data){
+            $(".inputAA").prop('disabled', true);
+            $("#actionBtn").html("Stop");
+            $("#actionBtn").addClass("w3-red");
+            myApp.userKey = $("#userTrasmettere").val();
+            myApp.travel = data[0].travel;
+            t = $("#tempo").val() *1;
+            myApp.timer = setInterval(setGps, t);
+        }
+        function vaiStop(){
+            $("#actionBtn").removeClass("w3-green");
+            $("#actionBtn").removeClass("w3-red");
+            if ($("#actionBtn").html() == "Vai"){
+                tmpData =  $("#dataTrasmettere").val();
+                tmpUser =  $("#userTrasmettere").val();
+                if (tmpData !== null && tmpUser !== null){
+                    doAjax("get.php?w=getTravel&d="+tmpData,[],"inviaSegnaliGps");
+                }
+            }else{
+                $("#actionBtn").html("Vai");
+                clearInterval(myApp.timer);
+                $(".inputAA").prop('disabled', false);
+                $("#actionBtn").addClass("w3-green");
+                $("#stato").html("&nbsp;");
+                doAjax("/get.php?w=getDates",[],"dateDisponibili");
+                doAjax("/get.php?w=getUsers",[],"usersDisponibili");                
+            }
+        }
+        
+        function dateDisponibili(data){
+            result = "<option value=\"\" disabled selected>Scegli la data</option>";
+            for(i=0;i < data.length;i++){
+                tmp = data[i];
+                result += "<option value=\""+tmp.d+"\">"+tmp.d+" ("+ tmp.n +")</option>";
+            }
+            $("#dataTrasmettere").html(result);
+        }
+        
+        function usersDisponibili(data){
+            result = "<option value=\"\" disabled selected>Scegli l'utente'</option>";
+            for(i=0;i < data.length;i++){
+                tmp = data[i];
+                result += "<option value=\""+tmp.password+"\">"+tmp.idUser+" ("+ tmp.nome +")</option>";
+            }
+            $("#userTrasmettere").html(result);
+        }
+        
+        
+        function doAjax(nomeServizio, param, nomeFunzione){
+            $.ajax({
+                url: nomeServizio,
+                type: 'POST', 
+                dataType: 'html', 
+                data: param
+                }).done(function(data) {
+                    try{
+                        var risposta = JSON.parse(data);
+                        console.log(risposta);
+                    }catch(e){
+                        console.log (data);
+                        alert("Errore nella conversione dei dati");
+                    }
+        
+                    if (risposta.result === "KO"){
+                        console.log (risposta.description);
+                        alert("Errore nell'esecuzione del servizio");
+                    }else{
+                        window[nomeFunzione](risposta.data);
+                    }
+        
+                }).fail(function() {
+                    console.log ("ERRORE ajax nella chiamata" + this.url + "</p><b>" + this.statusText + "</b>");
+                    // alert("ERRORE ajax nella chiamata");
+            });
+        }
+        
+        doAjax("/get.php?w=getDates",[],"dateDisponibili");
+        doAjax("/get.php?w=getUsers",[],"usersDisponibili");
+        $("#homeFrame").height(window.innerHeight - 80);  
+    </script>
+   </body>
+</html>
