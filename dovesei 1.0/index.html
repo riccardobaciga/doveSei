@@ -3,62 +3,63 @@
   <head>
     <meta name="description" content="Webpage description goes here" />
     <meta charset="utf-8" />
-    <title>dove Sei - Versione 1
-    </title>
+    <title>Dove Sei -- Goolocalisation </title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" href="img/ico.png">
+    <link rel="icon" type="/image/png" href="img/ico.png">
     <meta name="author" content="" />
-    <script src="https://code.jquery.com/jquery-latest.min.js">
-    </script>
+
+    <link  rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" 
+            integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" 
+            crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" 
+            integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" 
+            crossorigin=""></script>
+    
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-          integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-            integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
-            crossorigin="">
-    </script>
-    <link rel="stylesheet" href="include/dovesei.css">
+    
+    <link rel="stylesheet" href="/include/dovesei.css">
+    
   </head>
   <body class="lookingForSignal">
-    <div class="w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding" onclick="changeStatus()" id="statusBar"> 
+    <div class="w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding" id="statusBar"> 
     </div>
-    <div class="w3-hide w3-white w3-block" id="map">
-    </div>
+    <div class="w3-hide w3-white w3-block" id="map"></div>
     <script>
       var myApp = {
-          intervalMillis : 5000,
-          status : "lookingForSignal",
+          intervalMillis : 15000,
+          status        : "lookingForSignal",
           inizitialZoom : 15,
-          loadingIcon : '<img src="./img/loading.gif" height="20px" width="20px" >',
-      };
-      
-      myApp.statusBar = {
-          div : $('#statusBar'),
-          label : {
-              lookingForSignal : myApp.loadingIcon + " Cerco il segnale " + myApp.loadingIcon,
-              noSignalFound : "Non &egrave; collegato nessuno",
-              signalFound : myApp.loadingIcon + ' ',
-          },
-          class : {
-              lookingForSignal : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-indigo",
-              noSignalFound : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-deep-purple",
-              signalFound : "w3-bottom w3-block w3-xlarge w3-padding w3-blue-grey",
-          }
-          
-      }
-      
-      myApp.map = $('#map');
-      
-      myApp.me = {
-        trackProperties : {
-          color : "red",
-          weight : 10,
-          opacity : 0.50,
-        }
-        ,
-        track : null,
-      };
+          timerIcon : `<svg class="svg-area" width="20px" height="20px"  viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g transform="translate(20,20)"> 
+                            <circle id="timerBall" cx="0" cy="0" r="5"></circle>
+                        </g>
+                      </svg>`,
+          statusBar : {
+                        div : document.querySelector('#statusBar'),
+                        label : {
+                            lookingForSignal : '<img src="./img/loading.gif" height="20px" width="20px" > Cerco il segnale <img src="./img/loading.gif" height="20px" width="20px" >',
+                            noSignalFound : "Non &egrave; collegato nessuno",
+                            signalFound : '&nbsp;',
+                        },
+                        class : {
+                            lookingForSignal : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-indigo",
+                            noSignalFound : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-purple",
+                            signalFound : "w3-bottom w3-block w3-xlarge w3-padding w3-blue-grey",
+                        }
+            },
+            me : {
+                trackProperties : {
+                    color : "red",
+                    weight : 10,
+                    opacity : 0.50,
+                }
+            },
+            map :{
+                div : document.querySelector('#map'),
+                obj : null,
+            }
+        }; 
+
       
       function changeStatus(data) {
         console.log(data);
@@ -75,9 +76,9 @@
       function barStatusChange(){
         document.body.className = myApp.status;
         
-        myApp.statusBar.div.removeClass();
-        myApp.statusBar.div.html(myApp.statusBar.label[myApp.status])
-        myApp.statusBar.div.addClass(myApp.statusBar.class[myApp.status]);
+        myApp.statusBar.div.className = '';;
+        myApp.statusBar.div.innerHTML = myApp.statusBar.label[myApp.status];
+        myApp.statusBar.div.className = myApp.statusBar.class[myApp.status];
       }
       
       function chiamaGet(){
@@ -87,7 +88,7 @@
         }
         else{
             console.log("signal found");
-          doAjax("get.php",{w:"getPosition",t: myApp.currentTimestamp},"locateIt");
+          doAjax("get.php",{w:"getPosition" , t: myApp.currentTimestamp},"locateIt");
         }
       }
       
@@ -100,40 +101,40 @@
       function signalFound(user) {
         myApp.status = "signalFound";
         barStatusChange();
-        
-        myApp.map.removeClass('w3-hide');
-        
-        $("#map").height($(document).height() - $("#statusBar").height() - 10);
+        myApp.map.div.classList.remove("w3-hide");
+        myApp.map.div.style.height = window.innerHeight - myApp.statusBar.div.clientHeight +"px";
         getCurrentPosition(user.travel);
         
         // inserisco la mappa nel div
-        myApp.map = L.map('map').setView(myApp.currentPosition, myApp.inizitialZoom );
-        myApp.tiles = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+        myApp.map.obj = L.map('map').setView(myApp.currentPosition, myApp.inizitialZoom );
+        myApp.map.tiles = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
           maxZoom: 20,
           attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(myApp.map);
+        }).addTo(myApp.map.obj);
         
+        // costruisco l'icona
         myApp.me.icon = L.icon({
           iconUrl: './img/punto_rosso.png',
           iconSize: [20, 20],
           iconAnchor: [10, 10]
-        }
-                              );
+        });
+
         myApp.me.position = L.marker(myApp.currentPosition, {
           icon: myApp.me.icon
-        }).addTo(myApp.map);
+        }).addTo(myApp.map.obj);
         
+        // costruisco la traccia
         myApp.me.track = L.polyline([],{
           color: myApp.me.trackProperties.color,
           weight : myApp.me.trackProperties.weight,
           opacity : myApp.me.trackProperties.opacity
-        }).addTo(myApp.map);
+        }).addTo(myApp.map.obj);
         
         user.travel.forEach((value) => {
           myApp.me.track.addLatLng(L.latLng(value.y, value.x));
-        }
-                           );
-        myApp.statusBar.div.html(myApp.loadingIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed)
+        });
+
+        myApp.statusBar.div.innerHTML = myApp.timerIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed + " ed ha percorso "+myApp.currentDistance+" km";
         
       }
       
@@ -145,8 +146,9 @@
       function getCurrentPosition(travel){
         tmp = travel[travel.length-1];
         myApp.currentPosition = L.latLng(tmp.y, tmp.x);
-        myApp.currentSpeed = tmp.v;
+        myApp.currentSpeed = Math.round(tmp.v * 360)/100 + " km/h";
         myApp.currentTimestamp = tmp.t;
+        myApp.currentDistance = tmp.l;
       }
       
       function locateIt(data){
@@ -159,44 +161,48 @@
                     }
                 );
                 
-                myApp.map.setView(myApp.currentPosition);
+                myApp.map.obj.setView(myApp.currentPosition);
                 myApp.me.position.setLatLng(myApp.currentPosition);
-                myApp.statusBar.div.html(myApp.loadingIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed);
+                myApp.statusBar.div.innerHTML = myApp.timerIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed + " ed ha percorso "+myApp.currentDistance+" km" ;
               }
             }
         );
       }
       
       function doAjax(nomeServizio, param, nomeFunzione){
-        $.ajax({
-          url: nomeServizio,
-          type: 'POST', 
-          dataType: 'html', 
-          data: param
+        
+        var data = new FormData();
+        for (let key in param) {
+          data.append( key, param[key]);
+          console.log(key, param[key]);
+        }
+
+        fetch(nomeServizio,{
+            method: "POST",
+            body: data
         })
-        .done(function(data) {
-              try{
-                var risposta = JSON.parse(data);
-                console.log(risposta);
-              }
-              catch(e){
-                console.log (e+data);
-                alert("Errore nella conversione dei dati");
-              }
-              if (risposta.result === "KO"){
-                console.log (risposta.description);
-                alert("Errore nell'esecuzione del servizio");
-              }
-              else{
-                window[nomeFunzione](risposta.data);
-              }
+        .then((response) => response.json())
+        .then((risposta) => {
+            if (risposta.result == "OK"){
+                window[nomeFunzione](risposta.data)
+            }else{
+                throw Error("Errore applicativo");
             }
-         )
-         .fail(function() {
-                console.log ("ERRORE ajax nella chiamata" + this.url + "</p><b>" + this.statusText + "</b>");
-                alert("ERRORE ajax nella chiamata");
+        })
+        .catch(error => {
+            if (typeof error.json === "function") {
+                error.json().then(jsonError => {
+                    console.log("Json errore da API");
+                    console.log(jsonError);
+                }).catch(genericError => {
+                    console.log("Generico errore da API");
+                    console.log(error.statusText);
+                });
+            } else {
+                console.log("Fetch errore");
+                console.log(error);
             }
-        );
+        });
       }
       
       
