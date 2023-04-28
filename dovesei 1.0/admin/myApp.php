@@ -1,9 +1,9 @@
 <?php
-    // DEFINE COSTANTI PER LINK DIRETTO E URL DELLE DIRECTORY
+    // DEFINE COSTANTI PER LINK DIRETTO E URL DELLE DIRECTORY 
     define(sl,"/");
     define(baseDir, realPath(__DIR__.sl."..").sl);
     define(baseUrl, 'https://' . $_SERVER['HTTP_HOST'].sl);
-
+    
     $elements = scandir(baseDir);
     foreach($elements as $element){
         if (! strstr($element, ".") && is_dir(baseDir.sl.$element)){
@@ -21,16 +21,16 @@
         }
     };
 
-
+    
     // dati per collegarsi al DB
     $myApp->database->typeDB = "mysql";
     $myApp->database->hostDB = "localhost";
-    $myApp->database->userDB = "dovesei";
-	$myApp->database->passwordDB = "";
+    $myApp->database->userDB = "dovesei";  
+	$myApp->database->passwordDB = ""; 
 	$myApp->database->databaseDB= "my_dovesei";
-
-
-    $cryptKey = '<your cript key>';
+	
+	
+    $cryptKey = 'nascondi';
     require_once (pathAdmin."db_class.php");
 
     foreach (scandir(pathElements) as $dirName) {
@@ -38,9 +38,9 @@
         if (is_file($fileObjectName) ){
             require_once($fileObjectName);
         }
-    }
-
-
+    } 
+    
+    
 function createKey($string){
     global $cryptKey;
     return crypt($string, $cryptKey );
@@ -49,7 +49,7 @@ function createKey($string){
 function debug($msg){
     $nomeFile = "./myApp.debug";
     $debugFile = fopen($nomeFile, "a") or die("Unable to open file! $nomeFile");
-    fwrite($debugFile, $msg);
+    fwrite($debugFile, date("Y-m-d H:i:s") . $msg."\n");
     fclose($debugFile);
 }
 
@@ -64,21 +64,21 @@ function mandatory($nome){
     global $$nome;
     checkInput($nome);
     if ($$nome === "" || strlen($$nome) < 1 ){
-        debug("{\"result\":\"KO\",\"description\":\"campo $nome mancante.<br>\n".inputVariables()."\"}");
-        die ("{\"result\":\"KO\",\"description\":\"campo $nome mancante.<br>\n".inputVariables()."\"}");
+        debug("{\"result\":\"KO\",\"description\":\"campo $nome mancante. ".inputVariables()."\"}");
+        returnError ("{\"result\":\"KO\",\"description\":\"campo $nome mancante. ".inputVariables()."\"}");
     }
 }
 
 function inputVariables(){
-    $result = "GET <br>\n";
+    $result = "GET ";
     foreach ($_GET as $k => $v)
     {
-        $result .= " ->$k<- -->$v<-- <br>\n";
+        $result .= " ->$k<- -->$v<-- ";
     }
-    $result .= "POST <br>\n";
+    $result .= " POST ";
     foreach ($_POST as $k => $v)
     {
-        $result .= " $k -->$v<-- <br>\n";
+        $result .= " $k -->$v<-- ";
     }
     return $result;
 }
@@ -86,7 +86,7 @@ function inputVariables(){
 function returnError($msg){
     die ('{"result":"KO","description":"'.$msg.'"}');
 }
-
+    
 function returnData($msg){
     die ('{"result":"OK","data":'.$msg.'}');
 }

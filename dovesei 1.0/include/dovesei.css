@@ -1,31 +1,64 @@
-      body,
-      html {
-        height: 100%;
-        margin: 0;
-      }
+ body, html {
+     height: 100%;
+     margin: 0;
+}
+ .lookingForSignal, .noSignalFound, .signalFound {
+     height: 100%;
+     position: relative;
+     background-position: center;
+     background-repeat: no-repeat;
+     background-size: cover;
+}
+ .noSignalFound {
+     background-image: url("/img/noSignalFound.jpg");
+}
+ .lookingForSignal {
+     background-image: url("/img/lookingForSignal.jpg");
+}
+ .signalFound {
+     background-image: url("/img/signalFound.jpg");
+}
+ #map {
+     height: 100vh;
+}
 
-      .lookingForSignal,
-      .noSignalFound,
-      .signalFound {
-        height: 100%;
-        position: relative;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-      }
 
-      .noSignalFound {
-        background-image: url("/img/noSignalFound.jpg");
-      }
-
-      .lookingForSignal {
-        background-image: url("/img/lookingForSignal.jpg");
-      }
-
-      .signalFound {
-        background-image: url("/img/signalFound.jpg");
-      }
-
-      #map {
-        height: 100vh;
-      }
+ #timerBall {
+     fill: blueviolet;
+     animation: pulse1 15s ease-in-out infinite;
+}
+ @keyframes pulse1 {
+     0% {
+         transform: scale(0);
+    }
+     10% {
+         transform: scale(1.5);
+    }
+     20% {
+         transform: scale(2);
+    }
+     30% {
+         transform: scale(2.5);
+    }
+     40% {
+         transform: scale(3);
+    }
+     50% {
+         transform: scale(3.5);
+    }
+     60% {
+         transform: scale(3);
+    }
+     70% {
+         transform: scale(2.5);
+    }
+     80% {
+         transform: scale(2);
+    }
+     90% {
+         transform: scale(1.5);
+    }
+     100% {
+         transform: scale(1);
+    }
+}

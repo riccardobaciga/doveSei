@@ -36,7 +36,8 @@
             <option value="1000" >1 secondo</option>
             <option value="2000" >2 secondi</option>
             <option value="5000" selected>5 secondi</option>
-            <option value="100000">10 secondi</option>
+            <option value="10000">10 secondi</option>
+            <option value="15000">15 secondi</option>
             <option value="30000">30 secondi</option>
             <option value="60000">1 minuto</option>
             <option value="120000">2 minuto</option>
@@ -77,6 +78,7 @@
         myApp = {
             travel : [] ,
             currentPosition : 0,
+            currentDistance : 0,
             loadingIcon : '<img src="./img/loading.gif" height="20px" width="20px" > &nbsp; '
         };
         
@@ -101,6 +103,7 @@
             if (myApp.currentPosition < myApp.travel.length - 1){
                 myApp.currentPosition ++;
             }
+            
             tmp = myApp.travel[myApp.currentPosition];
             var today = new Date();
             month = '' + (today.getMonth() + 1);
@@ -116,7 +119,7 @@
         }
         
         function dummy(data){
-            console.log(data);
+            // console.log(data);
         }
         
         function inviaSegnaliGps(data){
@@ -176,21 +179,21 @@
                 }).done(function(data) {
                     try{
                         var risposta = JSON.parse(data);
-                        console.log(risposta);
+                        // console.log(risposta);
                     }catch(e){
-                        console.log (data);
+                        // console.log (data);
                         alert("Errore nella conversione dei dati");
                     }
         
                     if (risposta.result === "KO"){
-                        console.log (risposta.description);
+                        // console.log (risposta.description);
                         alert("Errore nell'esecuzione del servizio");
                     }else{
                         window[nomeFunzione](risposta.data);
                     }
         
                 }).fail(function() {
-                    console.log ("ERRORE ajax nella chiamata" + this.url + "</p><b>" + this.statusText + "</b>");
+                    // console.log ("ERRORE ajax nella chiamata" + this.url + "</p><b>" + this.statusText + "</b>");
                     // alert("ERRORE ajax nella chiamata");
             });
         }

@@ -16,7 +16,8 @@
             crossorigin=""></script>
     
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    
+    <link rel="stylesheet" href="/include/weather-icon/css/weather-icons.min.css">
+
     <link rel="stylesheet" href="/include/dovesei.css">
     
   </head>
@@ -44,7 +45,7 @@
                         class : {
                             lookingForSignal : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-indigo",
                             noSignalFound : "w3-display-middle w3-block w3-center w3-xlarge w3-opacity w3-padding w3-purple",
-                            signalFound : "w3-bottom w3-block w3-xlarge w3-padding w3-blue-grey",
+                            signalFound : "w3-bottom w3-block w3-large w3-padding w3-blue-grey",
                         }
             },
             me : {
@@ -60,9 +61,8 @@
             }
         }; 
 
-      
       function changeStatus(data) {
-        console.log(data);
+        // console.log(data);
         if (myApp.status !== "signalFound"){
           if (data.length > 0){
             data.forEach(signalFound);
@@ -83,11 +83,11 @@
       
       function chiamaGet(){
         if (myApp.status !== "signalFound"){
-            console.log("signal not found");
+            // console.log("signal not found");
           doAjax("get.php",{w:"getTravel"},"changeStatus");
         }
         else{
-            console.log("signal found");
+            // console.log("signal found");
           doAjax("get.php",{w:"getPosition" , t: myApp.currentTimestamp},"locateIt");
         }
       }
@@ -135,7 +135,8 @@
         });
 
         myApp.statusBar.div.innerHTML = myApp.timerIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed + " ed ha percorso "+myApp.currentDistance+" km";
-        
+        url = "get.php?w=getMeteo&x="+myApp.currentPositionY+"&y="+myApp.currentPositionX+"&p=1"
+        doAjax(url, [], "visualizzaMeteo");
       }
       
       function noSignaFound() {
@@ -146,11 +147,20 @@
       function getCurrentPosition(travel){
         tmp = travel[travel.length-1];
         myApp.currentPosition = L.latLng(tmp.y, tmp.x);
+        myApp.currentPositionX = tmp.x;
+        myApp.currentPositionY = tmp.y;
         myApp.currentSpeed = Math.round(tmp.v * 360)/100 + " km/h";
         myApp.currentTimestamp = tmp.t;
         myApp.currentDistance = tmp.l;
       }
-      
+      function visualizzaMeteo(data){
+
+        console.log("visualizzaMeteo\n" );
+        stringa = " - Meteo a " + data["localita"] + ": <i class=\""+data["ico"]+"\"></i> " + data["description"] + ", " + data["temperatura"]+", " + data["vento"] + " <i class=\""+data["ventoIco"]+"\"></i> " ;
+        document.querySelector("#statusBar").innerHTML = document.querySelector("#statusBar").innerHTML + stringa    
+        console.log(data);
+      }
+
       function locateIt(data){
         data.forEach((user) => {
               if (user.travel.length > 0){
@@ -164,7 +174,11 @@
                 myApp.map.obj.setView(myApp.currentPosition);
                 myApp.me.position.setLatLng(myApp.currentPosition);
                 myApp.statusBar.div.innerHTML = myApp.timerIcon + " " + user.nome + ' sta andando alla velocit&agrave; di ' + myApp.currentSpeed + " ed ha percorso "+myApp.currentDistance+" km" ;
-              }
+                
+                url = "get.php?w=getMeteo&x="+myApp.currentPositionY+"&y="+myApp.currentPositionX+"&p=1"
+                console.log(url);
+                doAjax(url, [], "visualizzaMeteo");
+                }
             }
         );
       }
@@ -174,7 +188,7 @@
         var data = new FormData();
         for (let key in param) {
           data.append( key, param[key]);
-          console.log(key, param[key]);
+          // console.log(key, param[key]);
         }
 
         fetch(nomeServizio,{
